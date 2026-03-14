@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 
 type Product = {
   id: string;
@@ -152,6 +153,15 @@ export default function MarketplacePage() {
 
               <div className="text-xs text-slate-500">
                 Category: {product.category?.name ?? 'Uncategorized'}
+              </div>
+
+              <div className="mt-4">
+                <Link
+                  href={`/marketplace/${product.slug}`}
+                  className="inline-flex h-9 items-center rounded-md border border-slate-300 px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                >
+                  View details
+                </Link>
               </div>
             </article>
           ))}

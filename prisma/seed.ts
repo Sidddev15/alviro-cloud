@@ -2,9 +2,9 @@ import {
   BillingInterval,
   PrismaClient,
   ProductStatus,
-} from "@prisma/client";
-
-const prisma = new PrismaClient();
+} from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
 type SeedProduct = {
   name: string;
@@ -63,8 +63,12 @@ const products: SeedProduct[] = [
 
 async function main() {
   if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL is not set.");
+    throw new Error('DATABASE_URL is not set.');
   }
+
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  const adapter = new PrismaPg(pool);
+  const prisma = new PrismaClient({ adapter });
 
   for (const item of products) {
     const category = await prisma.productCategory.upsert({
@@ -123,14 +127,14 @@ async function main() {
     }
   }
 
-  console.log("Seed completed: products and plans are up to date.");
+  console.log('Seed completed: products and plans are up to date.');
+
+  await prisma.$disconnect();
+  await pool.end();
 }
 
 main()
   .catch((error) => {
-    console.error("Seed failed:", error);
+    console.error('Seed failed:', error);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });

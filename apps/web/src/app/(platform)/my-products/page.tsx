@@ -198,7 +198,7 @@ export default function MyProductsPage() {
 
               <div className="mt-5">
                 <Link
-                  href={`/marketplace/${item.product.slug}`}
+                  href={`/${item.product.slug}`}
                   className="inline-flex h-9 items-center rounded-md bg-slate-900 px-3 text-sm font-semibold text-white hover:bg-slate-700"
                 >
                   Launch

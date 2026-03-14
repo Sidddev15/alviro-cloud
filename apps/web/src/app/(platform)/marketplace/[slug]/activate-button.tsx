@@ -1,43 +1,26 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3000';
+import { useRouter } from 'next/navigation';
 
 export default function ActivateButton({
   planId,
   productId,
+  productSlug,
 }: {
   planId: string;
   productId: string;
+  productSlug: string;
 }) {
-  const [loading, setLoading] = useState(false);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const storageKey = `active-plan:${productId}`;
-  const isActivated = activePlanId === planId;
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved) {
-      setActivePlanId(saved);
-    }
-  }, [planId, storageKey]);
-
-  useEffect(() => {
-    if (!message) return;
-
-    const timer = window.setTimeout(() => {
-      setMessage(null);
-    }, 5000);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [message]);
+  const persistedActivePlanId =
+    typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null;
+  const resolvedActivePlanId = activePlanId ?? persistedActivePlanId;
+  const isActivated = resolvedActivePlanId === planId;
 
   useEffect(() => {
     function handlePlanChanged(event: Event) {
@@ -64,52 +47,29 @@ export default function ActivateButton({
     };
   }, [productId]);
 
-  async function activateSelectedPlan() {
-    try {
-      setLoading(true);
-      setError(null);
-      setMessage(null);
-
-      const response = await fetch(`${API_BASE_URL}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Checkout failed (${response.status})`);
-      }
-
-      setActivePlanId(planId);
-      window.localStorage.setItem(storageKey, planId);
-      window.dispatchEvent(
-        new CustomEvent('plan-activation-changed', {
-          detail: { productId, planId },
-        }),
-      );
-      setMessage('Activated successfully');
-    }
-    catch (err) {
-      setError(err instanceof Error ? err.message : 'Checkout failed');
-    } finally {
-      setLoading(false);
-    }
+  function goToCheckout() {
+    const params = new URLSearchParams({
+      planId,
+      productId,
+      productSlug,
+    });
+    router.push(`/checkout?${params.toString()}`);
   }
 
   function handleActivate() {
-    if (isActivated || loading) return;
+    if (isActivated) return;
 
-    if (activePlanId && activePlanId !== planId) {
+    if (resolvedActivePlanId && resolvedActivePlanId !== planId) {
       setShowConfirmModal(true);
       return;
     }
 
-    void activateSelectedPlan();
+    goToCheckout();
   }
 
   function confirmPlanChange() {
     setShowConfirmModal(false);
-    void activateSelectedPlan();
+    goToCheckout();
   }
 
   return (
@@ -117,10 +77,10 @@ export default function ActivateButton({
       <button
         type="button"
         onClick={handleActivate}
-        disabled={loading || isActivated}
+        disabled={isActivated}
         className="inline-flex h-10 w-full items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-500 disabled:opacity-80"
       >
-        {isActivated ? 'Activated' : loading ? 'Activating...' : 'Activate'}
+        {isActivated ? 'Activated' : 'Activate'}
       </button>
 
       {showConfirmModal ? (
@@ -146,18 +106,6 @@ export default function ActivateButton({
               </button>
             </div>
           </div>
-        </div>
-      ) : null}
-
-      {message ? (
-        <div className="fixed bottom-4 right-4 z-[60] rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
-          {message}
-        </div>
-      ) : null}
-
-      {error ? (
-        <div className="fixed bottom-4 right-4 z-[60] rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-lg">
-          {error}
         </div>
       ) : null}
     </div>

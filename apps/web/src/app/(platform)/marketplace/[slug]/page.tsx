@@ -101,7 +101,11 @@ export default async function ProductDetailPage({
               <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
                 {formatInterval(plan.interval)}
               </p>
-              <ActivateButton planId={plan.id} productId={product.id} />
+              <ActivateButton
+                planId={plan.id}
+                productId={product.id}
+                productSlug={product.slug}
+              />
             </article>
           ))}
         </div>

@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum ProductStatus {
+  AVAILABLE
+  BETA
+  COMING_SOON
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  ONE_TIME
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  password           String
+  firstName          String?
+  lastName           String?
+  memberships        Membership[]
+  ownedOrganizations Organization[] @relation("OrganizationOwner")
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+}
+
+model Organization {
+  id           String               @id @default(uuid())
+  lastName     String
+  slug         String               @unique
+  ownerId      String
+  owner        User                 @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  memberships  Membership[]
+  entitlements ProductEntitlement[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+}
+
+model Membership {
+  id             String       @id @default(uuid())
+  userId         String
+  organizationId String
+  role           Role
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
+
+model ProductCategory {
+  id       String    @id @default(uuid())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Product {
+  id           String               @id @default(uuid())
+  name         String
+  slug         String               @unique
+  description  String
+  categoryId   String
+  category     ProductCategory      @relation(fields: [categoryId], references: [id])
+  status       ProductStatus
+  plans        ProductPlan[]
+  entitlements ProductEntitlement[]
+  createdAt    DateTime             @default(now())
+}
+
+model ProductPlan {
+  id           String               @id @default(uuid())
+  productId    String
+  name         String
+  price        Int
+  interval     BillingInterval
+  product      Product              @relation(fields: [productId], references: [id])
+  entitlements ProductEntitlement[]
+}
+
+model ProductEntitlement {
+  id             String            @id @default(uuid())
+  organizationId String
+  productId      String
+  planId         String
+  status         EntitlementStatus
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  product        Product           @relation(fields: [productId], references: [id])
+  plan           ProductPlan       @relation(fields: [planId], references: [id])
+  createdAt      DateTime          @default(now())
+}

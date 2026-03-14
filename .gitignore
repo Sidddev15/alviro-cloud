@@ -1,0 +1,15 @@
+node_modules
+.pnpm-store
+
+# Build artifacts
+apps/api/dist
+apps/web/.next
+
+# Logs
+*.log
+
+# Local environment files
+.env
+.env.local
+apps/api/.env
+apps/web/.env.local

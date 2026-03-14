@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import ActivateButton from './activate-button';
 
 type ProductPlan = {
   id: string;
@@ -100,12 +101,7 @@ export default async function ProductDetailPage({
               <p className="mt-1 text-xs uppercase tracking-wide text-slate-500">
                 {formatInterval(plan.interval)}
               </p>
-              <button
-                type="button"
-                className="mt-5 inline-flex h-10 w-full items-center justify-center rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700"
-              >
-                Activate
-              </button>
+              <ActivateButton planId={plan.id} productId={product.id} />
             </article>
           ))}
         </div>

@@ -1,4 +1,17 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import { BillingService } from './billing.service';
 
-@Controller('billing')
-export class BillingController {}
+type CheckoutBody = {
+  planId?: string;
+  organizationId?: string;
+};
+
+@Controller()
+export class BillingController {
+  constructor(private readonly billingService: BillingService) {}
+
+  @Post('checkout')
+  checkout(@Body() body: CheckoutBody) {
+    return this.billingService.checkout(body);
+  }
+}
